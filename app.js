@@ -1,4 +1,4 @@
-// app.js
+// app.js - complet et corrigé
 // UI glue, timer, tracking, storage, charts, export, tests & report
 
 (function(){
@@ -45,6 +45,7 @@
   }
 
   function populateWeeks(){
+    if(!weekSelector) return;
     weekSelector.innerHTML = '';
     for(let i=1;i<=26;i++){
       const opt = document.createElement('option'); opt.value=i; opt.text = `S${i}`;
@@ -59,6 +60,7 @@
   }
 
   function renderBlockLabel(){
+    if(!blockLabel) return;
     const b = getCurrentBlock(state.week);
     const deload = isDeloadWeek(state.week);
     if(deload) {
@@ -69,6 +71,7 @@
       blockLabel.style.background = 'linear-gradient(90deg, rgba(124,58,237,0.06), rgba(0,212,255,0.04))';
     } else {
       blockLabel.textContent = `Semaine ${state.week}`;
+      blockLabel.style.background = '';
     }
   }
 
@@ -82,8 +85,8 @@
       });
     });
 
-    $('#quickStartBtn').addEventListener('click', ()=> quickStart());
-    $('#runReportBtn').addEventListener('click', ()=> runVerificationReport());
+    $('#quickStartBtn')?.addEventListener('click', ()=> quickStart());
+    $('#runReportBtn')?.addEventListener('click', ()=> runVerificationReport());
     $('#exportCsvBtn')?.addEventListener('click', ()=> exportCSV());
     $('#exportPdfBtn')?.addEventListener('click', ()=> exportPDF());
     $('#clearHistoryBtn')?.addEventListener('click', ()=>{
@@ -92,9 +95,12 @@
   }
 
   function showPage(page){
+    if(!page) return;
     state.currentPage = page;
     $$('.page').forEach(p=>p.classList.add('hidden'));
-    $(`#page-${page === 'statistics' ? 'statistics' : page}`)?.classList.remove('hidden');
+    // guard for page names that match ids
+    const targetId = `#page-${page === 'statistics' ? 'statistics' : page}`;
+    $(`${targetId}`)?.classList.remove('hidden');
     // render for some pages
     if(page === 'dashboard') renderDashboard();
     if(page === 'sessions') renderSessions();
@@ -106,6 +112,7 @@
 
   // ---- DASHBOARD ----
   function renderDashboard(){
+    if(!statsGrid || !sessionGrid) return;
     statsGrid.innerHTML = '';
     // cards: week info, total sets, duration, deload
     const totalSets = Object.values(PROGRAM).reduce((a,s)=>a+ (s.totalSets||0),0);
@@ -127,6 +134,7 @@
     const order = ['dimanche','mardi','vendredi','maison'];
     order.forEach(k=>{
       const s = PROGRAM[k];
+      if(!s) return;
       const card = document.createElement('div'); card.className='session-card';
       card.innerHTML = `<div class="session-day">${s.title}</div><div class="session-meta">${s.exercises.length} ex · ${s.totalSets} séries · ${s.duration} min</div>`;
       card.addEventListener('click', ()=> openSessionModal(k));
@@ -136,7 +144,8 @@
 
   // ---- SESSIONS PAGE ----
   function renderSessions(){
-    const container = $('#sessionsList'); container.innerHTML = '';
+    const container = $('#sessionsList'); if(!container) return;
+    container.innerHTML = '';
     for(const [k,s] of Object.entries(PROGRAM)){
       const div = document.createElement('div'); div.className='stat-card'; div.style.marginBottom='10px';
       div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
@@ -149,6 +158,7 @@
 
   // ---- OPEN SESSION MODAL & RENDER EXERCISES / TRACKING ----
   function openSessionModal(key){
+    if(!PROGRAM[key]) return;
     state.currentSessionKey = key;
     state.currentSessionObj = JSON.parse(JSON.stringify(PROGRAM[key])); // clone to allow per-session edits
     // attach suggested weights per current week
@@ -184,7 +194,7 @@
             <span class="muted">S${s}</span>
           </label>
           <input type="number" min="0" step="0.5" class="input input-weight" placeholder="${ex.suggested}" value="${ex.suggested}"/>
-          <input type="number" min="0" max="50" class="input input-reps" placeholder="${ex.reps.replace(/\D/g,'')}" />
+          <input type="number" min="0" max="50" class="input input-reps" placeholder="${String(ex.reps).replace(/\D/g,'')}" />
           <input type="number" min="1" max="10" class="input input-rpe" placeholder="RPE" />
           <input class="input input-notes" placeholder="Notes" />
         `;
@@ -213,13 +223,14 @@
   }
 
   // modal controls
-  $('#closeModalBtn').addEventListener('click', closeSessionModal);
-  $('#saveSessionBtn').addEventListener('click', saveSessionFromModal);
+  $('#closeModalBtn')?.addEventListener('click', closeSessionModal);
+  $('#saveSessionBtn')?.addEventListener('click', saveSessionFromModal);
 
-  function closeSessionModal(){ sessionModal.classList.add('hidden'); sessionModal.setAttribute('aria-hidden','true'); stopTimer(); }
+  function closeSessionModal(){ if(sessionModal){ sessionModal.classList.add('hidden'); sessionModal.setAttribute('aria-hidden','true'); } stopTimer(); }
 
   // collect data and save to history
   function saveSessionFromModal(){
+    if(!state.currentSessionObj) return;
     const sessKey = state.currentSessionKey;
     const sessObj = state.currentSessionObj;
     // build record
@@ -228,7 +239,7 @@
       const ex = sessObj.exercises[exIdx];
       const sets = [];
       block.querySelectorAll('.series-row').forEach((row, i)=>{
-        const done = row.querySelector('.series-done').checked;
+        const done = !!row.querySelector('.series-done').checked;
         const weight = parseFloat(row.querySelector('.input-weight').value) || null;
         const reps = parseInt(row.querySelector('.input-reps').value,10) || null;
         const rpe = parseInt(row.querySelector('.input-rpe').value,10) || null;
@@ -286,6 +297,7 @@
   // ---- TIMER ----
   function startTimer(seconds){
     stopTimer();
+    if(!timerDisplay) return;
     state.timer.total = seconds;
     state.timer.remaining = seconds;
     state.timer.running = true;
@@ -308,28 +320,27 @@
     if(state.timer.intervalId) clearInterval(state.timer.intervalId);
     state.timer.intervalId = null;
     state.timer.running = false;
-    timerProgress.style.width = '0%';
+    if(timerProgress) timerProgress.style.width = '0%';
   }
-  timerStartBtn.addEventListener('click', ()=> {
+  timerStartBtn?.addEventListener('click', ()=> {
     if(!state.timer.running && state.timer.remaining>0) {
       state.timer.running = true;
       startTimer(state.timer.remaining);
     }
   });
-  timerPauseBtn.addEventListener('click', ()=> stopTimer());
-  timerSkipBtn.addEventListener('click', ()=> { stopTimer(); flashNotification('Skipped'); });
+  timerPauseBtn?.addEventListener('click', ()=> stopTimer());
+  timerSkipBtn?.addEventListener('click', ()=> { stopTimer(); flashNotification('Skipped'); });
 
   function flashNotification(msg='Repos terminé'){
-    // small visual
-    timerDisplay.classList.add('flash');
-    setTimeout(()=> timerDisplay.classList.remove('flash'), 900);
-    // optional sound
+    if(timerDisplay) {
+      timerDisplay.classList.add('flash');
+      setTimeout(()=> timerDisplay.classList.remove('flash'), 900);
+    }
+    // optional sound (silence placeholder)
     try {
-      const s = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YcQAAAB/'); // tiny silence placeholder
+      const s = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YcQAAAB/');
       s.play().catch(()=>{});
     } catch(e){}
-    // also show small alert
-    // Note: avoid blocking alerts in modal flow
     const notice = document.createElement('div'); notice.textContent = msg; notice.style.position='fixed'; notice.style.right='18px'; notice.style.bottom='18px'; notice.style.background='#061025'; notice.style.padding='10px 12px'; notice.style.borderRadius='8px'; notice.style.border='1px solid rgba(255,255,255,0.03)'; document.body.appendChild(notice);
     setTimeout(()=> notice.remove(), 1400);
   }
@@ -354,7 +365,8 @@
     card.innerHTML = `<canvas id="chartSets" height="120"></canvas>`;
     container.appendChild(card);
     setTimeout(()=>{
-      const ctx = document.getElementById('chartSets').getContext('2d');
+      const ctx = document.getElementById('chartSets')?.getContext('2d');
+      if(!ctx) return;
       if(window._chartSets) window._chartSets.destroy();
       window._chartSets = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{ label:'Séries', data }] }, options:{ responsive:true } });
     },50);
@@ -366,9 +378,10 @@
     const card2 = document.createElement('div'); card2.className='stat-card'; card2.innerHTML = `<div style="font-weight:900">Volume muscle (séries)</div><canvas id="chartMuscles" height="180"></canvas>`;
     container.appendChild(card2);
     setTimeout(()=>{
-      const ctx2 = document.getElementById('chartMuscles').getContext('2d');
+      const ctx2 = document.getElementById('chartMuscles')?.getContext('2d');
+      if(!ctx2) return;
       if(window._chartMuscles) window._chartMuscles.destroy();
-      window._chartMuscles = new Chart(ctx2, { type:'horizontalBar' in Chart ? 'bar' : 'bar', data:{ labels:muscleLabels, datasets:[{ label:'Séries', data:muscleData }] }, options:{ indexAxis:'y', responsive:true } });
+      window._chartMuscles = new Chart(ctx2, { type: 'bar', data:{ labels:muscleLabels, datasets:[{ label:'Séries', data:muscleData }] }, options:{ indexAxis:'y', responsive:true } });
     },80);
   }
 
@@ -383,6 +396,10 @@
       return;
     }
     const b = blocks[curBlock];
+    if(!b){
+      el.innerHTML = `<div class="stat-card"><strong>Pas de bloc actif</strong></div>`;
+      return;
+    }
     const div = document.createElement('div'); div.className='stat-card';
     div.innerHTML = `<div style="font-weight:900">Bloc ${curBlock} — ${b.name}</div><div class="muted">Tempo: ${b.tempo} • RPE: ${b.rpe}</div>`;
     el.appendChild(div);
@@ -402,14 +419,10 @@
     el.appendChild(details);
   }
 
-  function renderTechniques(){ renderTechniques(); } // ensure defined
-
   // ---- PROGRESSION PAGE ----
   function renderProgression(){
     const el = $('#progressionArea'); if(!el) return;
     el.innerHTML = '';
-    // table grid
-    const wrap = document.createElement('div'); wrap.style.display='grid'; wrap.style.gridTemplateColumns='1fr 1fr 1fr'; wrap.style.gap='8px';
     const header = document.createElement('div'); header.style.gridColumn='1/4';
     header.innerHTML = `<div style="font-weight:900">Progression calculée (Semaine ${state.week})</div>`;
     el.appendChild(header);
@@ -543,7 +556,7 @@
     const reportOutput = $('#reportOutput');
     if(reportOutput){
       reportOutput.textContent = lines.join('\n');
-      $('#reportModal').classList.remove('hidden');
+      $('#reportModal')?.classList.remove('hidden');
     } else {
       console.log(lines.join('\n'));
     }
@@ -590,10 +603,18 @@
     return { allPassed, details };
   }
 
-  // bind modal close
-  $('#closeReportBtn')?.addEventListener('click', ()=> $('#reportModal').classList.add('hidden'));
-
-  // utility to show history details (already defined earlier)
+  // bind modal close + report close + exposures
+  function bindControls(){
+    $('#closeReportBtn')?.addEventListener('click', ()=> $('#reportModal').classList.add('hidden'));
+    // ensure exports are bound (duplicates safe)
+    $('#exportCsvBtn')?.addEventListener('click', exportCSV);
+    $('#exportPdfBtn')?.addEventListener('click', exportPDF);
+    // allow clicking backdrop to close modals
+    document.addEventListener('click', (e)=>{
+      if(e.target === sessionModal) closeSessionModal();
+      if(e.target === $('#reportModal')) $('#reportModal').classList.add('hidden');
+    }, true);
+  }
 
   // expose some functions for console testing
   window.calculerCharge = calculerCharge;
@@ -601,10 +622,6 @@
   window.isDeloadWeek = isDeloadWeek;
   window.getBicepsExercise = getBicepsExerciseForWeek;
   window.calculateMuscleVolume = calculateMuscleVolume;
-
-  // bind exports
-  $('#exportCsvBtn')?.addEventListener('click', exportCSV);
-  $('#exportPdfBtn')?.addEventListener('click', exportPDF);
 
   // start app
   init();
