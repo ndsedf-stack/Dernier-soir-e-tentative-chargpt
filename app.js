@@ -111,3 +111,22 @@ document.getElementById("closeReportBtn").onclick = () =>
   document.getElementById("reportModal").classList.add("hidden");
 
 renderDashboard();
+document.addEventListener("DOMContentLoaded", () => {
+  // Rendu du dashboard initial
+  if (typeof renderDashboard === "function") renderDashboard();
+  else if (typeof initApp === "function") initApp();
+  else console.warn("⚠️ Aucune fonction d'initialisation trouvée");
+
+  // Navigation entre pages
+  document.querySelectorAll(".nav-item").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".nav-item").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      const page = btn.dataset.page;
+      document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));
+      const show = document.getElementById("page-"+page);
+      if (show) show.classList.remove("hidden");
+    });
+  });
+});
+
