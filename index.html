@@ -10,86 +10,33 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-  <!-- CORRECTION: pointer vers le fichier présent dans le repo (style.css) -->
-  <link rel="stylesheet" href="style.css">
+  <!-- feuille de style -->
+  <link rel="stylesheet" href="styles.css?v=6">
 </head>
+
 <body>
   <div id="app" class="app-container">
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="logo">💪</div>
-        <div class="brand-text">
-          <h1>HYBRID MASTER 51</h1>
+    <main class="main">
+      <header class="page-header">
+        <div>
+          <h1 class="title">HYBRID MASTER 51</h1>
           <div class="muted">Professional Edition</div>
         </div>
-      </div>
-      <nav class="nav">
-        <button class="nav-item active" data-page="dashboard">🏠 Dashboard</button>
-        <button class="nav-item" data-page="sessions">💪 Séances</button>
-        <button class="nav-item" data-page="statistics">📊 Stats</button>
-        <button class="nav-item" data-page="techniques">🔥 Techniques</button>
-        <button class="nav-item" data-page="progression">📈 Progression</button>
-        <button class="nav-item" data-page="history">📅 Historique</button>
-        <div class="spacer"></div>
-        <div class="small muted">Semaine actuelle</div>
-        <select id="weekSelector" class="week-select"></select>
-        <div id="blockLabel" class="block-label"></div>
-      </nav>
-    </aside>
+        <div class="header-controls">
+          <button id="quickStartBtn" class="btn primary">🚀 Démarrer</button>
+          <button id="runReportBtn" class="btn outline">🧾 Rapport</button>
+        </div>
+      </header>
 
-    <main class="main">
-      <!-- DASHBOARD -->
-      <section id="page-dashboard" class="page">
-        <header class="page-header">
-          <div>
-            <h2>Dashboard</h2>
-            <div class="muted">Vue globale du programme</div>
-          </div>
-          <div class="header-controls">
-            <button id="quickStartBtn" class="btn primary">🚀 Démarrer séance</button>
-            <button id="runReportBtn" class="btn outline">🧾 Vérifier conformité</button>
-          </div>
-        </header>
+      <h3>Sessions de la semaine</h3>
+      <div id="sessionGrid" class="session-grid"></div>
 
-        <div id="statsGrid" class="stats-grid"></div>
-
-        <h3>Sessions de la semaine</h3>
-        <div id="sessionGrid" class="session-grid"></div>
-      </section>
-
-      <!-- SESSIONS PAGE -->
-      <section id="page-sessions" class="page hidden">
-        <header class="page-header">
-          <div><h2>Séances</h2><div class="muted">Détails et ouverture</div></div>
-        </header>
-        <div id="sessionsList"></div>
-      </section>
-
-      <!-- STATS PAGE -->
-      <section id="page-statistics" class="page hidden">
-        <header class="page-header"><div><h2>Statistiques</h2><div class="muted">Progression & Volume</div></div></header>
-        <div id="chartsArea"></div>
-      </section>
-
-      <!-- TECHNIQUES PAGE -->
-      <section id="page-techniques" class="page hidden">
-        <header class="page-header"><div><h2>Techniques par bloc</h2><div class="muted">Instructions pour le bloc actif</div></div></header>
-        <div id="techniquesArea"></div>
-      </section>
-
-      <!-- PROGRESSION PAGE -->
-      <section id="page-progression" class="page hidden">
-        <header class="page-header"><div><h2>Progression des charges</h2><div class="muted">Calcul automatique des charges</div></div></header>
-        <div id="progressionArea"></div>
-      </section>
-
-      <!-- HISTORY PAGE -->
       <section id="page-history" class="page hidden">
         <header class="page-header">
-          <div><h2>Historique</h2><div class="muted">Enregistrements sauvegardés</div></div>
+          <div><h2>Historique</h2><div class="muted">Séances enregistrées</div></div>
           <div class="header-controls">
-            <button id="exportCsvBtn" class="btn outline">Export CSV</button>
-            <button id="exportPdfBtn" class="btn outline">Export PDF</button>
+            <button id="exportCsvBtn" class="btn outline">CSV</button>
+            <button id="exportPdfBtn" class="btn outline">PDF</button>
             <button id="clearHistoryBtn" class="btn danger">Effacer</button>
           </div>
         </header>
@@ -98,7 +45,7 @@
     </main>
   </div>
 
-  <!-- MODAL SESSION -->
+  <!-- MODALE SÉANCE -->
   <div id="sessionModal" class="modal hidden" role="dialog" aria-hidden="true">
     <div class="modal-body">
       <header class="modal-header">
@@ -107,39 +54,43 @@
           <div id="modalSub" class="muted"></div>
         </div>
         <div>
-          <button id="saveSessionBtn" class="btn primary">Terminer & Sauvegarder</button>
+          <button id="saveSessionBtn" class="btn primary">Sauvegarder</button>
           <button id="closeModalBtn" class="btn outline">Fermer</button>
         </div>
       </header>
 
       <div id="modalContent" class="modal-content"></div>
 
-      <div class="modal-footer">
-        <div class="timer-panel">
-          <div class="timer-display" id="timerDisplay">00:00</div>
-          <div class="progress-bar"><div class="progress-fill" id="timerProgress"></div></div>
-          <div class="timer-controls">
-            <button id="timerStartBtn" class="btn primary small">Start</button>
-            <button id="timerPauseBtn" class="btn outline small">Pause</button>
-            <button id="timerSkipBtn" class="btn small">Skip</button>
-          </div>
+      <div class="timer-panel">
+        <div class="timer-display" id="timerDisplay">00:00</div>
+        <div class="progress-bar"><div class="progress-fill" id="timerProgress"></div></div>
+        <div class="timer-controls">
+          <button id="timerStartBtn" class="btn primary small">Start</button>
+          <button id="timerPauseBtn" class="btn outline small">Pause</button>
+          <button id="timerSkipBtn" class="btn small">Skip</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- REPORT / OUTPUT area (hidden) -->
+  <!-- MODALE RAPPORT -->
   <div id="reportModal" class="modal hidden" role="dialog" aria-hidden="true">
     <div class="modal-body">
       <header class="modal-header">
-        <div><h3>Rapport de vérification</h3></div>
-        <div><button id="closeReportBtn" class="btn outline">Fermer</button></div>
+        <h3>Rapport de vérification</h3>
+        <button id="closeReportBtn" class="btn outline">Fermer</button>
       </header>
       <pre id="reportOutput" class="report-output"></pre>
     </div>
   </div>
 
-  <!-- scripts -->
+  <nav class="nav">
+    <button class="nav-item active" data-page="dashboard">🏠<span>Accueil</span></button>
+    <button class="nav-item" data-page="sessions">💪<span>Séances</span></button>
+    <button class="nav-item" data-page="statistics">📊<span>Stats</span></button>
+    <button class="nav-item" data-page="history">📅<span>Historique</span></button>
+  </nav>
+
   <script src="data.js"></script>
   <script src="app.js"></script>
 </body>
